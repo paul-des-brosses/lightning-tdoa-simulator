@@ -1,0 +1,16 @@
+{
+  "noise_curve_pente_log_log": 0.9986917135504326,
+  "noise_curve_erreur_a_100ns": 54.773630600176176,
+  "solver_comparison_ratio_ecart_max": 0.05147173313458353,
+  "geometry_ratio_optimal": 5.0,
+  "geometry_erreur_optimale_m": 51.72873341055376,
+  "geometry_zone_rayon_km": 50,
+  "geometry_ratio_efficace": 3.0,
+  "geometry_erreur_efficace_m": 52.50688654342182,
+  "geometry_asymptote_m": 49.06517954366569,
+  "geometry_seuil_efficace": 1.2,
+  "heatmap_median_disque_inscrit_m": 51.55752135418334,
+  "heatmap_median_disque_circ_m": 63.193249733729175,
+  "heatmap_resolution": 30,
+  "heatmap_trials_par_cellule": 100
+}

@@ -1,0 +1,669 @@
+/* ==========================================================================
+   Variables : palette + typographie
+   ========================================================================== */
+:root {
+  /* Fonds */
+  --bg-main:        #0a0e1a;
+  --bg-encadre:     #141824;
+  --bg-input:       #0f1320;
+
+  /* Bordures et lignes */
+  --border:         #2a3042;
+  --grille:         #161b2a;
+
+  /* Texte */
+  --accent:         #ffffff;
+  --text:           #e6e8eb;
+  --text-secondaire:#8b95a8;
+  --text-grise:    #4a5266;
+
+  /* Palette météo (erreurs absolues) — fixe */
+  --meteo-vert:     #10b981;
+  --meteo-jaune:    #eab308;
+  --meteo-orange:   #f97316;
+  --meteo-rouge:    #ef4444;
+
+  /* Typographie */
+  --font-ui:        system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --font-mono:      "JetBrains Mono", "Consolas", "Monaco", "Courier New", monospace;
+}
+
+/* ==========================================================================
+   Reset
+   ========================================================================== */
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; overflow: hidden; }
+body {
+  font-family: var(--font-ui);
+  background: var(--bg-main);
+  color: var(--text);
+  font-size: 13px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+button {
+  font-family: inherit;
+  font-size: inherit;
+  color: inherit;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+/* ==========================================================================
+   Layout principal
+   ========================================================================== */
+.app {
+  display: grid;
+  grid-template-columns: 300px 1fr;
+  height: 100vh;
+  width: 100vw;
+}
+
+/* ==========================================================================
+   Sidebar (gauche, 300px, fond opaque)
+   ========================================================================== */
+.sidebar {
+  background: var(--bg-encadre);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  z-index: 3;
+}
+
+.sidebar-haut {
+  flex: 2 1 0;
+  padding: 16px;
+  overflow-y: auto;
+}
+
+.sidebar-separator {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 0;
+  flex-shrink: 0;
+}
+
+.sidebar-bas {
+  flex: 1 1 0;
+  padding: 16px;
+  overflow-y: auto;
+}
+
+.sidebar h3 {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-secondaire);
+  margin-bottom: 10px;
+  font-weight: 600;
+}
+
+/* Boutons exclusifs (ex : presets de bruit, géométries, mode de génération) */
+.boutons-exclusifs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+  margin-bottom: 14px;
+}
+
+.boutons-exclusifs button {
+  background: var(--bg-input);
+  color: var(--text);
+  border: 1px solid var(--border);
+  padding: 7px 8px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  text-align: center;
+  transition: background 0.1s, color 0.1s, border-color 0.1s;
+}
+
+.boutons-exclusifs button:hover {
+  border-color: var(--text-secondaire);
+}
+
+.boutons-exclusifs button.actif {
+  background: var(--accent);
+  color: var(--bg-main);
+  border-color: var(--accent);
+  font-weight: 600;
+}
+
+/* Bouton désactivé (ex : "Personnalisé" tant que pas de drag) */
+.boutons-exclusifs button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+  border-style: dashed;
+}
+.boutons-exclusifs button:disabled:hover {
+  border-color: var(--border);  /* annule le hover normal */
+}
+/* Mais s'il devient actif (Personnalisé activé par drag) : style accent normal */
+.boutons-exclusifs button:disabled.actif {
+  opacity: 1;
+  border-style: solid;
+}
+
+/* Bloc slider sous un preset (ex : côté équilatéral) */
+.sidebar-section {
+  margin-bottom: 18px;
+}
+
+.slider-bloc {
+  margin-top: 6px;
+}
+
+.slider-bloc label {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 11px;
+  color: var(--text-secondaire);
+  margin-bottom: 6px;
+}
+
+.slider-bloc input[type="range"] {
+  width: 100%;
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
+  cursor: pointer;
+}
+
+/* Webkit (Chrome / Edge / Safari) */
+.slider-bloc input[type="range"]::-webkit-slider-runnable-track {
+  height: 4px;
+  background: var(--border);
+  border-radius: 2px;
+}
+.slider-bloc input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  background: var(--accent);
+  border-radius: 50%;
+  margin-top: -5px;
+  border: none;
+}
+
+/* Firefox */
+.slider-bloc input[type="range"]::-moz-range-track {
+  height: 4px;
+  background: var(--border);
+  border-radius: 2px;
+}
+.slider-bloc input[type="range"]::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  background: var(--accent);
+  border-radius: 50%;
+  border: none;
+}
+
+/* Sigmas read-only (en preset) ou sliders (en personnalisé) */
+.sigmas-readonly {
+  margin-bottom: 12px;
+}
+
+.ligne {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 5px 0;
+  font-size: 12px;
+}
+
+.sigmas-readonly .ligne span:first-child,
+.stats-panel .ligne span:first-child {
+  color: var(--text-secondaire);
+  font-size: 11px;
+}
+
+.sigma-total {
+  border-top: 1px solid var(--border);
+  padding-top: 10px;
+  margin-top: 6px;
+  font-weight: 600;
+}
+
+.sigma-total span:first-child {
+  color: var(--text);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-size: 11px;
+}
+
+/* Toutes les valeurs numériques en monospace */
+.val {
+  font-family: var(--font-mono);
+  color: var(--accent);
+  font-size: 12px;
+}
+
+/* Placeholder visuel des sections vides en P1 */
+.placeholder {
+  color: var(--text-secondaire);
+  font-style: italic;
+  text-align: center;
+  padding: 24px 12px;
+  border: 1px dashed var(--border);
+  border-radius: 4px;
+  font-size: 12px;
+  line-height: 1.6;
+}
+.placeholder-detail {
+  font-size: 10px;
+  color: var(--text-grise);
+  font-style: normal;
+  display: inline-block;
+  margin-top: 6px;
+  line-height: 1.5;
+}
+
+/* ==========================================================================
+   Zone de simulation (centre/droite, fond avec grille)
+   ========================================================================== */
+.zone-simulation {
+  position: relative;
+  background-color: var(--bg-main);
+  overflow: hidden;
+  /* Grille rendue en SVG par svg_scene.js (espacement 10 km en monde). */
+}
+
+.scene {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+  cursor: default;
+}
+
+.label-station {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  fill: var(--accent);
+  font-weight: 600;
+  pointer-events: none;  /* le label ne capture pas le drag */
+}
+
+.label-distance {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 600;
+  /* Halo de fond pour rester lisible par-dessus la ligne du réseau */
+  paint-order: stroke;
+  stroke: var(--bg-main);
+  stroke-width: 4px;
+  stroke-linejoin: round;
+  pointer-events: none;
+}
+
+.station {
+  cursor: grab;
+}
+.station:hover polygon {
+  stroke-width: 2;
+}
+
+/* ==========================================================================
+   P6 — Sidebar adaptative : checkboxes, bouton Lancer, bouton section
+   ========================================================================== */
+
+/* Bouton "Lancer la simulation" en bas de la section CONFIGURATION */
+.btn-lancer-sidebar {
+  width: 100%;
+  background: var(--accent);
+  color: var(--bg-main);
+  border: 1px solid var(--accent);
+  font-family: var(--font-mono);
+  font-weight: 600;
+  font-size: 13px;
+  padding: 10px 12px;
+  cursor: pointer;
+  transition: filter 0.15s;
+}
+.btn-lancer-sidebar:hover { filter: brightness(0.92); }
+
+/* Input numérique (ex : direction de dérive en degrés) */
+.input-numerique {
+  width: 100%;
+  background: var(--bg-input);
+  color: var(--accent);
+  border: 1px solid var(--border);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  padding: 5px 8px;
+  text-align: right;
+}
+.input-numerique:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+/* Bouton secondaire de section (ex : "Calculer la carte d'erreur") */
+.btn-section {
+  width: 100%;
+  background: var(--bg-input);
+  color: var(--accent);
+  border: 1px solid var(--border);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  padding: 8px 12px;
+  cursor: pointer;
+  transition: border-color 0.15s;
+}
+.btn-section:hover:not(:disabled) { border-color: var(--accent); }
+.btn-section.grise,
+.btn-section:disabled {
+  color: var(--text-grise);
+  cursor: not-allowed;
+  border-style: dashed;
+}
+/* Checkboxes empilées (ex : couches visibles) */
+.checkbox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 0;
+  font-size: 12px;
+  cursor: pointer;
+  user-select: none;
+}
+.checkbox input[type="checkbox"] {
+  accent-color: var(--accent);
+  cursor: inherit;
+}
+.checkbox input[type="checkbox"]:disabled {
+  cursor: not-allowed;
+}
+.checkbox:has(input:disabled) {
+  color: var(--text-grise);
+  cursor: not-allowed;
+}
+
+/* Rappel "Mode manuel — cliquez pour déclencher" en EN_ATTENTE */
+.attente-rappel {
+  border: 1px dashed var(--border);
+  border-radius: 4px;
+  padding: 10px 12px;
+  font-size: 11px;
+  color: var(--text-secondaire);
+  line-height: 1.5;
+  background: var(--bg-input);
+}
+.attente-rappel strong {
+  color: var(--accent);
+  font-family: var(--font-mono);
+  font-weight: 600;
+}
+.attente-rappel em {
+  font-style: normal;
+  color: var(--text);
+}
+
+/* Sidebar basse grisée (hors état CONFIGURATION) */
+.sidebar-bas.grise {
+  opacity: 0.45;
+  pointer-events: none;
+}
+.sidebar-bas.grise * {
+  cursor: not-allowed !important;
+}
+
+/* ==========================================================================
+   P6 — Modale bloquante (Reset, Rapport, etc.)
+   ========================================================================== */
+.modale-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(10, 14, 26, 0.78);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+}
+.modale {
+  background: var(--bg-encadre);
+  border: 1px solid var(--border);
+  padding: 24px 28px 18px;
+  min-width: 320px;
+  max-width: 480px;
+}
+.modale-message {
+  font-family: var(--font-ui);
+  font-size: 13px;
+  color: var(--accent);
+  line-height: 1.6;
+  margin-bottom: 20px;
+}
+.modale-boutons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+.modale-btn {
+  background: var(--bg-input);
+  color: var(--accent);
+  border: 1px solid var(--border);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  padding: 7px 18px;
+  cursor: pointer;
+  min-width: 70px;
+  transition: border-color 0.1s, background 0.1s;
+}
+.modale-btn:hover { border-color: var(--accent); }
+.modale-oui { background: var(--accent); color: var(--bg-main); border-color: var(--accent); }
+.modale-oui:hover { filter: brightness(0.92); }
+
+.modale-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--accent);
+  margin: -8px 0 18px 0;
+  cursor: pointer;
+  user-select: none;
+}
+.modale-checkbox input[type="checkbox"] {
+  cursor: pointer;
+  margin: 0;
+  accent-color: var(--accent);
+}
+
+/* ==========================================================================
+   Overlay de chargement Pyodide (z-index 100, bloque tout)
+   ========================================================================== */
+.pyodide-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(10, 14, 26, 0.96);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  padding: 20px;
+  z-index: 100;
+}
+.pyodide-overlay[hidden] { display: none; }
+
+.pyodide-spinner {
+  width: 44px;
+  height: 44px;
+  border: 3px solid var(--border);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: pyodide-spin 0.9s linear infinite;
+}
+@keyframes pyodide-spin {
+  to { transform: rotate(360deg); }
+}
+
+.pyodide-msg {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--accent);
+  text-align: center;
+}
+
+.pyodide-detail {
+  font-size: 11px;
+  color: var(--text-secondaire);
+  text-align: center;
+  line-height: 1.6;
+  max-width: 420px;
+}
+
+/* Message discret : configuration quasi-colinéaire.
+   Bottom-left pour ne chevaucher ni la barre de contrôle ni les stats. */
+.message-colineaire {
+  position: absolute;
+  bottom: 16px;
+  left: 16px;
+  background: var(--bg-encadre);
+  border: 1px solid var(--meteo-rouge);
+  color: var(--meteo-rouge);
+  padding: 7px 12px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  z-index: 6;
+}
+
+/* ==========================================================================
+   Overlay "Cliquez pour déclencher" (état EN_ATTENTE, z 6)
+   ========================================================================== */
+.overlay-attente {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: var(--bg-encadre);
+  border: 1px solid var(--border);
+  padding: 14px 24px;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--accent);
+  z-index: 6;
+}
+.overlay-attente[hidden] { display: none; }
+
+/* ==========================================================================
+   Barre de contrôle (top-right, z 4)
+   ========================================================================== */
+.barre-controle {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: var(--bg-encadre);
+  border: 1px solid var(--border);
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  z-index: 4;
+}
+
+.rangee {
+  display: flex;
+  gap: 4px;
+}
+
+.rangee button {
+  background: var(--bg-input);
+  color: var(--accent);
+  border: 1px solid var(--border);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  padding: 7px 12px;
+  min-width: 78px;
+  transition: background 0.1s, border-color 0.1s;
+}
+
+.rangee button:hover:not(.grise):not(:disabled) {
+  border-color: var(--accent);
+}
+
+.rangee button.grise,
+.rangee button:disabled {
+  color: var(--text-grise);
+  cursor: not-allowed;
+  background: var(--bg-encadre);
+}
+
+.rangee button.actif {
+  background: var(--accent);
+  color: var(--bg-main);
+  border-color: var(--accent);
+  font-weight: 600;
+}
+
+.multiplicateurs button {
+  min-width: 0;
+  flex: 1;
+  padding: 5px 0;
+}
+
+/* ==========================================================================
+   Stats panel (bottom-right, z 5)
+   ========================================================================== */
+.stats-panel {
+  position: absolute;
+  bottom: 16px;
+  right: 16px;
+  width: 220px;
+  background: var(--bg-encadre);
+  border: 1px solid var(--border);
+  padding: 12px 14px;
+  z-index: 5;
+}
+.stats-panel.cache { display: none; }
+
+.stats-panel .ligne {
+  border-bottom: 1px solid var(--border);
+}
+.stats-panel .ligne:last-child {
+  border-bottom: none;
+}
+
+.stats-panel .ligne-seuil {
+  border-top: 1px solid var(--border);
+  margin-top: 4px;
+  padding-top: 8px;
+}
+
+.stats-panel .ligne-seuil span:first-child {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+}
+
+.seuil-input {
+  width: 52px;
+  background: var(--bg-input);
+  color: var(--accent);
+  border: 1px solid var(--border);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  padding: 1px 4px;
+  text-align: right;
+}
+
+.seuil-input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+/* Chrome/Firefox : retire les flèches du number input pour cohérence visuelle */
+.seuil-input::-webkit-inner-spin-button,
+.seuil-input::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+.seuil-input { -moz-appearance: textfield; }

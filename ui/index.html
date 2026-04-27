@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Simulateur TDOA — Détection de foudre</title>
+  <!-- Favicon vide en data-URI pour éviter le 404 sur /favicon.ico -->
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="style.css">
+  <!-- Pyodide d'abord (CDN), puis bridge, puis modules métier -->
+  <script defer src="https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js"></script>
+  <script defer src="pyodide_bridge.js"></script>
+  <script defer src="modale.js"></script>
+  <script defer src="state_machine.js"></script>
+  <script defer src="svg_scene.js"></script>
+  <script defer src="animation.js"></script>
+  <script defer src="storm_generator.js"></script>
+  <script defer src="heatmap_erreur.js"></script>
+  <script defer src="sidebar.js"></script>
+  <script defer src="control_bar.js"></script>
+  <script defer src="stats_panel.js"></script>
+  <!-- Rapport PDF (P12). jsPDF est téléchargé à la demande au 1er clic. -->
+  <script defer src="rapport_pdf.js"></script>
+</head>
+<body>
+  <!-- Overlay de chargement Pyodide. Bloque tout tant que la lib n'est pas prête.
+       Caché dynamiquement par pyodide_bridge.js dès l'init terminée. -->
+  <div id="pyodide-overlay" class="pyodide-overlay">
+    <div class="pyodide-spinner" aria-hidden="true"></div>
+    <div class="pyodide-msg">Initialisation du moteur Python (Pyodide)…</div>
+    <div class="pyodide-detail">
+      Premier chargement : 30-60 s (téléchargement de scipy/numpy + lib).<br>
+      Mises en cache navigateur pour les sessions suivantes (~5-10 s).
+    </div>
+  </div>
+
+  <div class="app">
+
+    <!-- ============ SIDEBAR (gauche, 300px) ============ -->
+    <aside class="sidebar" aria-label="Panneau latéral">
+
+      <!-- Section haute : adaptative selon l'état. Rendue par sidebar.js. -->
+      <section class="sidebar-haut" id="sidebar-haut"></section>
+
+      <hr class="sidebar-separator">
+
+      <!-- Section basse : persistante (mode de bruit), apparence finale dès P1
+           pour valider le look. Sera rendue interactive en P8. -->
+      <section class="sidebar-bas" id="sidebar-bas" aria-label="Mode de bruit">
+        <h3>Mode de bruit</h3>
+        <div class="boutons-exclusifs" role="radiogroup">
+          <button class="actif" aria-pressed="true">Désert</button>
+          <button aria-pressed="false">Rural</button>
+          <button aria-pressed="false">Urbain</button>
+          <button aria-pressed="false">Personnalisé</button>
+        </div>
+
+        <div class="sigmas-readonly">
+          <div class="ligne"><span>σ_vlf</span><span class="val">50 ns</span></div>
+          <div class="ligne"><span>σ_gps</span><span class="val">50 ns</span></div>
+          <div class="ligne"><span>σ_horloge</span><span class="val">20 ns</span></div>
+        </div>
+
+        <div class="ligne sigma-total">
+          <span>σ_τ_total</span><span class="val">73 ns</span>
+        </div>
+      </section>
+    </aside>
+
+    <!-- ============ ZONE SIMULATION (centre/droite, flex) ============ -->
+    <main class="zone-simulation" id="zone-simulation">
+
+      <!-- Grille de fond rendue en CSS background. -->
+
+      <!-- SVG : stations, réseau, éclairs, détections, overlays.
+           viewBox dynamique calé sur clientWidth/Height par svg_scene.js.
+           Contenu rempli au runtime (grille, stations, réseau, barycentre). -->
+      <svg class="scene" preserveAspectRatio="xMidYMid meet"
+           aria-label="Zone de simulation"></svg>
+
+      <!-- Overlay "EN_ATTENTE" : caché par défaut. Affiché par le state
+           machine en P6. Centré, fond semi-opaque, monospace. -->
+      <div class="overlay-attente" hidden>
+        Cliquez sur la zone pour déclencher le premier éclair
+      </div>
+
+      <!-- Barre de contrôle (top-right floatant). Boutons mis à jour par control_bar.js -->
+      <div class="barre-controle" id="barre-controle">
+        <div class="rangee">
+          <button id="btn-lancer">Lancer</button>
+          <button id="btn-pause" class="grise" disabled>Pause</button>
+          <button id="btn-arreter" class="grise" disabled>Arrêter</button>
+          <button id="btn-reset" class="grise" disabled>Réinitialiser</button>
+        </div>
+        <div class="rangee multiplicateurs">
+          <button data-mult="1"  class="actif" aria-pressed="true">1×</button>
+          <button data-mult="2"  aria-pressed="false">2×</button>
+          <button data-mult="5"  aria-pressed="false">5×</button>
+          <button data-mult="10" aria-pressed="false">10×</button>
+        </div>
+      </div>
+
+      <!-- Encadré stats live (bottom-right floatant). Caché en CONFIGURATION,
+           affiché à partir de EN_ATTENTE par stats_panel.js. -->
+      <div class="stats-panel cache" id="stats-panel">
+        <div class="ligne"><span>Temps écoulé</span><span class="val">00:00</span></div>
+        <div class="ligne"><span>Éclairs</span><span class="val">0</span></div>
+        <div class="ligne"><span>Taux observé</span><span class="val">— /min</span></div>
+        <div class="ligne"><span>Erreur médiane</span><span class="val">— m</span></div>
+        <div class="ligne"><span>Erreur p95</span><span class="val">— m</span></div>
+        <div class="ligne"><span>Erreur max</span><span class="val">— m</span></div>
+        <div class="ligne ligne-seuil">
+          <span>Détection &lt; <input type="number" value="500" min="0" step="50" class="seuil-input" aria-label="Seuil de détection en mètres"> m</span>
+          <span class="val">— %</span>
+        </div>
+      </div>
+
+    </main>
+  </div>
+</body>
+</html>
