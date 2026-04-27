@@ -6,7 +6,7 @@ Software simulation of a 3-station VLF lightning detection network using time-di
 
 ## Origin
 
-This simulator grew out of a hardware project I started in 2025 as part of an ESILV computer-science assignment: a three-node VLF lightning detector built around custom loop antennas, ESP32 acquisition boards, and GPS modules for sub-microsecond time synchronisation. The hardware reached the prototype stage but was never finalised, and the original source has not been preserved.
+This simulator grew out of a hardware project I started in 2025 as part of an ESILV computer-science assignment: a three-node VLF lightning detector built around custom loop antennas, ESP32 acquisition boards, and GPS modules for time synchronisation. The hardware reached the prototype stage but was never finalised, and the original source has not been preserved.
 
 The Python work here reconstructs and formalises the algorithmic side of that effort. It is the part that survived: the geometry, the noise model, the solver, and the benchmarks that quantify how strongly each one drives accuracy — questions the prototype never had time to answer empirically.
 
@@ -118,7 +118,7 @@ A point of design that matters: `solver.py` does not import `simulator.py`. The 
 
 ## Author
 
-Paul Des Brosses — M1 student in Creative Technology at ESILV (Paris), 2025–2026 academic year.
+Paul des Brosses — M1 student in Creative Technology at ESILV (Paris), 2025–2026 academic year.
 
 *Creative Tech engineering at the intersection of hardware, software, and applied AI.*
 
