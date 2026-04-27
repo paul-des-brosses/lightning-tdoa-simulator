@@ -1,8 +1,18 @@
 # Lightning TDOA Simulator
 
-Software simulation of a 3-station VLF lightning detection network using time-difference-of-arrival trilateration. Pure Python, no hardware involved; the same code runs on a laptop or in the browser via WebAssembly.
+Software simulation of a 3-station VLF lightning detection network using time-difference-of-arrival trilateration. Pure Python, no hardware involved; the same code runs on a laptop or in the browser via WebAssembly. Originally a hardware exploration; now a public software study of TDOA accuracy under controlled noise.
 
 **Headline result.** With three stations on a 50 km equilateral baseline and 100 ns timing noise on every channel, the median location error is **about 52 m inside the network footprint** and stays under 65 m out to the circumscribed circle.
+
+## Origin
+
+This simulator grew out of a hardware project I started in 2025 as part of an ESILV computer-science assignment: a three-node VLF lightning detector built around custom loop antennas, ESP32 acquisition boards, and GPS modules for sub-microsecond time synchronisation. The hardware reached the prototype stage but was never finalised, and the original source has not been preserved.
+
+The Python work here reconstructs and formalises the algorithmic side of that effort. It is the part that survived: the geometry, the noise model, the solver, and the benchmarks that quantify how strongly each one drives accuracy — questions the prototype never had time to answer empirically.
+
+## Why this project
+
+VLF lightning detection sits at an intersection that is particularly rewarding to work on: signal acquisition from a low-frequency physical phenomenon, sub-microsecond time synchronisation across distributed nodes, and the inversion of a clean geometric problem. The basic idea — three timestamps, two hyperbolas, one fix — is almost trivially simple to state, yet the precision required to make it useful (a few hundred metres of position error demands tens of nanoseconds of timing budget) is what makes the engineering interesting. That contrast between geometric simplicity and operational tightness is what kept me on the topic.
 
 ![Heatmap of median location error around a 50 km triangle](assets/heatmap_main.png)
 
@@ -105,6 +115,15 @@ A point of design that matters: `solver.py` does not import `simulator.py`. The 
 - The Chan algorithm (closed-form, robust under noise) would be a useful third solver to add for benchmarking — it is a known good baseline in the TDOA literature.
 - The clock bias model is per-trial; for campaign-style simulations it should be per-station and carried across trials.
 - The static plotting code (`viz.py`) and the live SVG renderer (`ui/svg_scene.js`) duplicate a small amount of geometry. Refactoring towards a single source of truth is on the to-do list.
+
+## Author
+
+Paul Des Brosses — M1 student in Creative Technology at ESILV (Paris), 2025–2026 academic year.
+
+*Creative Tech engineering at the intersection of hardware, software, and applied AI.*
+
+- GitHub: <https://github.com/paul-des-brosses>
+- LinkedIn: <https://www.linkedin.com/in/paul-des-brosses/>
 
 ## License
 
