@@ -182,12 +182,12 @@
   /* ---------- Helpers de formatage ---------- */
 
   function formatNombre(n, decimales = 1) {
-    if (n === null || n === undefined || Number.isNaN(n)) return "—";
+    if (n === null || n === undefined || Number.isNaN(n)) return "-";
     return n.toFixed(decimales);
   }
 
   function formatDistance(m) {
-    if (m === null || m === undefined || Number.isNaN(m)) return "—";
+    if (m === null || m === undefined || Number.isNaN(m)) return "-";
     if (m >= 10000) return `${(m / 1000).toFixed(2)} km`;
     return `${Math.round(m)} m`;
   }
@@ -442,12 +442,14 @@
         ["  Dérive", `${p.derive_direction_deg}° à ${p.derive_vitesse_m_par_s} m/s`],
       );
     }
+    // jsPDF Helvetica ne couvre que Latin-1, donc σ et τ sont translittérés
+    // pour la sortie PDF (l'UI HTML garde les symboles grecs).
     paires_config.push(
       ["Mode de bruit", config.preset_bruit],
-      ["  σ_vlf", `${config.sigmas.vlf} ns`],
-      ["  σ_gps", `${config.sigmas.gps} ns`],
-      ["  σ_horloge", `${config.sigmas.horloge} ns`],
-      ["  σ_τ_total", `${config.sigma_total_ns} ns`],
+      ["  sigma_vlf", `${config.sigmas.vlf} ns`],
+      ["  sigma_gps", `${config.sigmas.gps} ns`],
+      ["  sigma_horloge", `${config.sigmas.horloge} ns`],
+      ["  sigma_total", `${config.sigma_total_ns} ns`],
     );
     y = dessinerKV(doc, paires_config, y);
 
@@ -469,11 +471,11 @@
       ["Temps écoulé (hors pauses)", formatTemps(stats.temps_ms)],
       ["Éclairs générés", String(stats.nb_eclairs)],
       ["Éclairs détectés (Pyodide)", String(stats.nb_detectes)],
-      ["Taux observé", stats.nb_eclairs > 0 ? `${formatNombre(stats.taux_par_min, 1)} /min` : "—"],
+      ["Taux observé", stats.nb_eclairs > 0 ? `${formatNombre(stats.taux_par_min, 1)} /min` : "-"],
       ["Erreur médiane", formatDistance(stats.mediane)],
       ["Erreur p95", formatDistance(stats.p95)],
       ["Erreur max", formatDistance(stats.max)],
-      [`Détections sous ${stats.seuil_m} m`, stats.nb_detectes > 0 ? `${stats.pct_sous_seuil} %` : "—"],
+      [`Détections sous ${stats.seuil_m} m`, stats.nb_detectes > 0 ? `${stats.pct_sous_seuil} %` : "-"],
     ];
     y = dessinerKV(doc, paires_stats, y);
 
@@ -502,16 +504,75 @@
     return doc;
   }
 
+  /* ---------- Overlay de progression ---------- */
+
+  function afficherChargement(texte) {
+    let overlay = document.getElementById("rapport-overlay");
+    if (!overlay) {
+      overlay = document.createElement("div");
+      overlay.id = "rapport-overlay";
+      overlay.innerHTML = `
+        <style>
+          #rapport-overlay {
+            position: fixed; inset: 0; z-index: 1000;
+            background: rgba(10, 14, 26, 0.85);
+            display: flex; align-items: center; justify-content: center;
+            flex-direction: column; gap: 18px;
+            color: #ffffff; font-family: monospace; font-size: 14px;
+          }
+          #rapport-overlay .spin {
+            width: 44px; height: 44px;
+            border: 3px solid rgba(255,255,255,0.18);
+            border-top-color: #0ea5e9;
+            border-radius: 50%;
+            animation: rapport-spin 0.8s linear infinite;
+          }
+          @keyframes rapport-spin { to { transform: rotate(360deg); } }
+        </style>
+        <div class="spin"></div>
+        <div id="rapport-overlay-msg"></div>
+      `;
+      document.body.appendChild(overlay);
+    }
+    document.getElementById("rapport-overlay-msg").textContent = texte;
+  }
+
+  function masquerChargement() {
+    document.getElementById("rapport-overlay")?.remove();
+  }
+
+  /**
+   * Suit la progression du calcul heatmap et l'affiche sur l'overlay.
+   * Renvoie un id d'intervalle à clear quand le calcul est fini.
+   */
+  function suivreProgresHeatmap() {
+    return setInterval(() => {
+      const e = window.heatmapErreur?.etat;
+      if (!e?.en_cours) return;
+      const k = e.progres?.k ?? 0;
+      const n = e.progres?.n ?? 0;
+      if (n > 0) afficherChargement(`Calcul de la carte d'erreur… ${k}/${n}`);
+    }, 200);
+  }
+
   /* ---------- Orchestration ---------- */
 
   async function genererEtOuvrir({ calculerHeatmap }) {
+    let intervalId = null;
     try {
+      afficherChargement("Préparation du rapport…");
+
       // 1. Calcul heatmap si demandé et pas encore fait
       if (calculerHeatmap && window.heatmapErreur && !window.heatmapErreur.etat.grille) {
+        afficherChargement("Calcul de la carte d'erreur…");
+        intervalId = suivreProgresHeatmap();
         await window.heatmapErreur.calculer();
+        clearInterval(intervalId);
+        intervalId = null;
       }
 
       // 2. Captures SVG (avant chargement jsPDF, pour donner un retour visuel rapide)
+      afficherChargement("Capture de la zone de simulation…");
       const captureZone = await capturerZone({ avecHeatmap: false });
       const captureHeatmap = window.heatmapErreur?.etat?.grille
         ? await capturerZone({ avecHeatmap: true })
@@ -524,6 +585,7 @@
       stats.seuil_m = window.statsPanel?.seuilDetection?.() ?? 500;
 
       // 4. Charger jsPDF (CDN) à la demande
+      afficherChargement("Construction du PDF…");
       const jsPDF = await chargerJsPdf();
 
       // 5. Construire le PDF
@@ -535,6 +597,9 @@
     } catch (err) {
       console.error("[rapport_pdf] Échec :", err);
       alert(`Échec de la génération du rapport :\n${err.message}\n\nVoir la console pour détails.`);
+    } finally {
+      if (intervalId !== null) clearInterval(intervalId);
+      masquerChargement();
     }
   }
 
