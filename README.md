@@ -26,7 +26,7 @@ pytest && python experiments/bench_heatmap.py
 
 The third command runs the test suite and regenerates the headline figure in `assets/`. The other three benchmarks under `experiments/` work the same way.
 
-The interactive web demo lives in `ui/`. Open `ui/index.html` in a recent Chromium-based browser and let Pyodide warm up (~30 s on first visit, ~5 s afterwards thanks to the browser cache).
+The interactive web demo runs in the browser at <https://paul-des-brosses.github.io/lightning-tdoa-simulator/>. Allow ~30 s on first visit while Pyodide downloads scipy and numpy compiled to WebAssembly; subsequent loads are ~5 s thanks to the browser cache.
 
 ## Method
 
@@ -88,7 +88,7 @@ For a target coverage zone of radius *Z*, varying the equilateral side over {0.1
 
 The web UI is a pure static site: HTML, CSS, vanilla JS, and Pyodide. The Python library is loaded into the browser as-is, with no JavaScript port. You can drag the three stations, switch noise presets, generate a storm of random strikes (Poisson timing + 2D random walk + drift), and watch detections coloured by error. Pause to compute a Monte Carlo error map over the visible area, or stop the session to download a one-page PDF report (config, key figures, captured scene).
 
-A static deployment will be available at <https://paul-des-brosses.github.io/lightning-tdoa-simulator/> once GitHub Pages is enabled on the repository.
+Live at <https://paul-des-brosses.github.io/lightning-tdoa-simulator/>, served as a static site by GitHub Pages. To run the same demo from a local clone, start a small HTTP server in the repo root (`python -m http.server 8000`) and open `http://localhost:8000`. Opening `ui/index.html` directly from the filesystem will not work because Pyodide needs HTTP to fetch its assets.
 
 ## Architecture
 
