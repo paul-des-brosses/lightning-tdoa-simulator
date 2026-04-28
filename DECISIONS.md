@@ -1,4 +1,4 @@
-# DECISIONS.md — Lightning TDOA Simulator
+# DECISIONS.md - Lightning TDOA Simulator
 
 Ce document consigne les choix d'architecture et de méthode arrêtés avant implémentation. Toute déviation en phase de production doit être justifiée et reportée ici.
 
@@ -21,17 +21,17 @@ Ce document consigne les choix d'architecture et de méthode arrêtés avant imp
 - **Géométrie** : coordonnées cartésiennes locales en plan tangent ENU (East-North-Up), en mètres, autour d'un point de référence.
 
   - *Choix initial.* Validité bornée à un rayon fixe de 200 km autour du barycentre des stations.
-  - *Itération 1 — passage à un critère GDOP géométrique.* Le 200 km étant arbitraire, on le remplace par un rayon de validité dérivé de la géométrie via la GDOP (Geometric Dilution of Precision). Implémentation :
+  - *Itération 1 - passage à un critère GDOP géométrique.* Le 200 km étant arbitraire, on le remplace par un rayon de validité dérivé de la géométrie via la GDOP (Geometric Dilution of Precision). Implémentation :
       1. Fonction `distance_max_validite(stations, gdop_max)` ajoutée à `metrics.py`, calculée par dichotomie radiale.
       2. Quatre seuils standard avec labels qualitatifs : GDOP ≤ 2 = excellent, ≤ 5 = bon, ≤ 10 = dégradé, ≤ 20 = limite.
       3. Garde-fou actif : `simulate_strike` refuse (lève `ErreurSimulation`) tout impact au-delà de GDOP = 20 par défaut.
-  - *Itération 2 — passage à un budget d'erreur user-facing.* Le seuil GDOP reste cryptique pour l'utilisateur. On expose un paramètre `erreur_max_km` qui exprime directement la tolérance d'erreur de position acceptable. Le seuil GDOP est dérivé dynamiquement :
+  - *Itération 2 - passage à un budget d'erreur user-facing.* Le seuil GDOP reste cryptique pour l'utilisateur. On expose un paramètre `erreur_max_km` qui exprime directement la tolérance d'erreur de position acceptable. Le seuil GDOP est dérivé dynamiquement :
       ```
       GDOP_max = (erreur_max_km · 1000) / (σ_τ_total · c)
       ```
       où `σ_τ_total = sqrt(σ_vlf² + σ_gps² + σ_horloge²)` est extrait de `NoiseConfig` (propriété `sigma_totale_s`). `simulate_strike(impact, ..., erreur_max_km=1.0)` est le nouveau défaut ; `erreur_max_km=None` désactive le garde-fou. Une fonction sœur `distance_max_validite_par_erreur(stations, erreur_max_km, noise_cfg)` expose le rayon utile dans cette nouvelle convention.
   - *Justification.* (a) Un rayon fixe ignore la dépendance physique à l'écartement des stations (loi d'échelle linéaire : `rayon_utile ≈ k · côté_baseline` observée empiriquement pour seuil GDOP fixé). (b) La GDOP capture cette dépendance sans référence à une distance absolue, mais elle est non-intuitive pour un utilisateur. (c) Le budget d'erreur en km est immédiatement compréhensible (`"je veux max 1 km de précision"`) et combine proprement les deux dimensions du problème : géométrie (GDOP) et bruit de mesure (σ_τ). Le défaut `erreur_max_km=1.0` reproduit approximativement le comportement de l'itération 1 (GDOP=20) pour les niveaux de bruit nominaux du projet, donc la transition est rétro-compatible. Le garde-fou reste là pour empêcher les usages silencieusement absurdes en champ très lointain (observés en Phase 3 : les deux solveurs convergent vers la même position erronée sans signal).
-- **Simulation des temps d'arrivée** : niveau 1 — calcul direct `t_i = ‖impact − station_i‖ / c + bruit`. Pas de synthèse de forme d'onde.
+- **Simulation des temps d'arrivée** : niveau 1 - calcul direct `t_i = ‖impact − station_i‖ / c + bruit`. Pas de synthèse de forme d'onde.
 - **Modèle de bruit** : trois composantes indépendantes, paramétrables séparément.
   1. Jitter de détection VLF (gaussien, σ ~ 100 ns à 1 μs).
   2. Bruit GPS sur timestamp (gaussien, σ ~ 50-100 ns avec PPS).
@@ -68,7 +68,7 @@ experiments/
 - **Matplotlib** : PNG générés et commités dans `assets/` pour affichage direct dans le README.
 - **Folium** : export HTML interactif (carte, stations, impact, hyperboles, ellipse d'incertitude) hébergé sur GitHub Pages. Lien "Voir la démo interactive" dans le README.
 
-### Évolution Phase 8 — UI web interactive
+### Évolution Phase 8 - UI web interactive
 
   - *Choix initial.* Rejeté : Streamlit / Gradio. Contrainte de déploiement et de maintenance non justifiée pour ce portfolio. Visualisation = matplotlib statique + Folium HTML uniquement.
   - *Itération.* Ajout d'une **UI web statique interactive** servie via Pyodide :
@@ -78,7 +78,7 @@ experiments/
       4. Génération de rapport PDF côté client via swiftlatex.js (TeX Live WASM), avec fallback zip `.tex + PNG`.
       5. Déployable sur GitHub Pages (statique pur).
       6. Modules ajoutés à `lightning_tdoa/` : `storm.py` (générateur d'orages Poisson + dérive), extensions `metrics.py` (calculer_grille_erreur_mc, optimiser_placement_station), extensions `geometry.py` (triangle_etire, triangle_obtus, triangle_predefini), extensions `simulator.py` (PRESETS_BRUIT).
-  - *Justification.* La contrainte initiale "pas de framework serveur" reste respectée : Pyodide est entièrement côté client, le déploiement reste statique. On obtient l'interactivité + la génération de rapport sans introduire de backend à maintenir. Le coût technique a été validé en P4 (Phase 8) : scipy/numpy passent Pyodide, premier load ~30 s, sessions ultérieures ~5 s grâce au cache navigateur. La lib Python existante est réutilisée telle quelle — aucune logique métier n'est dupliquée en JS (à l'exception d'une détection colinéarité légère pour le drag temps-réel, doublée par un appel `verifier_non_colineaires()` en P6).
+  - *Justification.* La contrainte initiale "pas de framework serveur" reste respectée : Pyodide est entièrement côté client, le déploiement reste statique. On obtient l'interactivité + la génération de rapport sans introduire de backend à maintenir. Le coût technique a été validé en P4 (Phase 8) : scipy/numpy passent Pyodide, premier load ~30 s, sessions ultérieures ~5 s grâce au cache navigateur. La lib Python existante est réutilisée telle quelle - aucune logique métier n'est dupliquée en JS (à l'exception d'une détection colinéarité légère pour le drag temps-réel, doublée par un appel `verifier_non_colineaires()` en P6).
 
 ---
 
@@ -101,7 +101,7 @@ Quatre tests retenus, chacun motivé par une propriété concrète à protéger 
 
 Quatre expériences, générées par les scripts `experiments/*.py` et commitées sous forme de PNG dans `assets/`.
 
-1. **Heatmap d'erreur RMS** (expérience phare) — grille 2D autour des stations, ≥100 trials Monte Carlo par cellule, σ_GPS fixé à 100 ns. Figure centrale du README.
+1. **Heatmap d'erreur RMS** (expérience phare) - grille 2D autour des stations, ≥100 trials Monte Carlo par cellule, σ_GPS fixé à 100 ns. Figure centrale du README.
 2. **Courbe erreur médiane vs σ_bruit** en échelle log-log. Vérifie la linéarité attendue théoriquement et identifie la zone de décrochage.
 3. **Comparatif solveur analytique vs NLLS** sur la même courbe de bruit. Justifie quantitativement le choix du NLLS.
 4. **Optimisation de la géométrie pour zone cible**.

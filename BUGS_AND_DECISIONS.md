@@ -1,4 +1,4 @@
-# Notes techniques — bugs et décisions
+# Notes techniques - bugs et décisions
 
 Bugs rencontrés pendant le développement, leur diagnostic et leur correction.
 Décisions techniques annexes prises au fil du code, qui n'ont pas leur place
@@ -13,7 +13,7 @@ qu'on retrouve le « pourquoi ».
 
 # Bugs rencontrés
 
-## 2026-04-23 — solver.py — NLLS coincé au point de départ (problème d'échelle)
+## 2026-04-23 - solver.py - NLLS coincé au point de départ (problème d'échelle)
 
 **Symptôme**
 Lors des premiers tests de `resoudre_nlls`, la position retournée était
@@ -50,7 +50,7 @@ valeurs "normalisées" autour de 1.
 
 ---
 
-## 2026-04-23 — solver.py — TRF se piège quand x0 est numériquement proche de zéro
+## 2026-04-23 - solver.py - TRF se piège quand x0 est numériquement proche de zéro
 
 **Symptôme**
 Après le fix précédent (résidus en mètres), le solveur restait toujours
@@ -66,7 +66,7 @@ erreurs d'arrondi qui donnent un barycentre à `(-3.6e-12, -1.8e-12)`.
 Or la méthode `trust-region reflective` (TRF) de scipy calibre la **taille
 initiale de son rayon de confiance** proportionnellement à `|x|`. Quand
 `|x| ≈ 1e-12`, le premier pas tenté fait `4e-12 m`. Évidemment, pour
-naviguer vers un impact à 10 km, c'est insuffisant — l'optimiseur conclut
+naviguer vers un impact à 10 km, c'est insuffisant - l'optimiseur conclut
 "fonction plate localement" et abandonne.
 
 Démonstration empirique trouvée pendant le debug :
@@ -102,7 +102,7 @@ exact, ou choisir un point de départ explicitement non-nul.
 
 ---
 
-## 2026-04-23 — solver.py — Solveur analytique pioche le mauvais des 2 candidats en noiseless
+## 2026-04-23 - solver.py - Solveur analytique pioche le mauvais des 2 candidats en noiseless
 
 **Symptôme**
 Pour un impact loin du triangle (testé : `(-30000, 80000)` avec triangle de
@@ -130,7 +130,7 @@ r0- = 59283 → P = (-30000, 80000), résidus = [-7e-12, +7e-12], coût = 1.06e-
 Avec une comparaison stricte `<` et `meilleur_cout = inf` initial, le
 premier itéré est gardé. Comme `_racines_quadratique` retourne dans
 l'ordre `[(-B+sqrt)/(2A), (-B-sqrt)/(2A)]`, c'est `r0+` qui passe en
-premier — et c'est le mauvais.
+premier - et c'est le mauvais.
 
 **Fix**
 Critère de départage secondaire : **distance du candidat au barycentre
@@ -151,12 +151,12 @@ au problème. La seule vraie solution serait une 4ème station ou un
 Quand un solveur a plusieurs solutions mathématiquement valides, prévoir
 explicitement un critère de désambiguïsation déterministe. Tester
 spécifiquement avec un cas qui révèle l'ambiguïté (impact loin du
-domaine "intuitif") — sinon le bug se cache jusqu'à ce qu'un benchmark
+domaine "intuitif") - sinon le bug se cache jusqu'à ce qu'un benchmark
 bizarre tombe dessus.
 
 ---
 
-## 2026-04-23 — ui/pyodide_bridge.js — `JsProxy object is not subscriptable` au passage JS→Python
+## 2026-04-23 - ui/pyodide_bridge.js - `JsProxy object is not subscriptable` au passage JS→Python
 
 **Symptôme**
 Premier appel à `simulerEtResoudre()` depuis l'UI lève
@@ -198,7 +198,7 @@ manipulent).
 
 # Décisions techniques
 
-## 2026-04-23 — solver.py — Résidus exprimés en mètres dans `ResultatSolveur`
+## 2026-04-23 - solver.py - Résidus exprimés en mètres dans `ResultatSolveur`
 
 **Choix**
 `ResultatSolveur.residus` contient les résidus en **mètres** (différences
@@ -219,7 +219,7 @@ de portées), pas en secondes (différences de TDOA).
 
 ---
 
-## 2026-04-23 — geometry.py — Détection de colinéarité par SVD
+## 2026-04-23 - geometry.py - Détection de colinéarité par SVD
 
 **Choix**
 `verifier_non_colineaires` utilise la décomposition SVD des coordonnées
@@ -243,7 +243,7 @@ stations. Si ratio < `tol` → colinéaire.
 
 ---
 
-## 2026-04-23 — simulator.py — `NoiseConfig` régénère les biais d'horloge à chaque appel
+## 2026-04-23 - simulator.py - `NoiseConfig` régénère les biais d'horloge à chaque appel
 
 **Choix**
 Les biais d'horloge par station sont tirés à neuf à chaque appel de
@@ -258,7 +258,7 @@ bruit GPS).
 DECISIONS.md spécifie un offset "constant par station" mais cela vaut
 pour un événement d'observation donné, pas nécessairement entre essais
 Monte Carlo indépendants. Pour les benchmarks (Monte Carlo de 1000+
-essais), on veut moyenner aussi sur l'aléa du biais — sinon on évalue
+essais), on veut moyenner aussi sur l'aléa du biais - sinon on évalue
 juste la précision pour UN tirage particulier de biais, ce qui n'est
 pas représentatif.
 
@@ -268,7 +268,7 @@ optionnel `biais_fixes: dict[str, float] | None = None` à `simulate_strike`.
 
 ---
 
-## 2026-04-23 — simulator.py + metrics.py — API user-facing : `erreur_max_km` au lieu de seuil GDOP
+## 2026-04-23 - simulator.py + metrics.py - API user-facing : `erreur_max_km` au lieu de seuil GDOP
 
 **Choix**
 Le garde-fou actif de `simulate_strike` est paramétré par un budget
@@ -300,7 +300,7 @@ c ≈ 3·10⁸ m/s → GDOP_max ≈ 22), donc la rétro-compatibilité est assur
 
 ---
 
-## 2026-04-23 — solver.py — Désambiguïsation analytique par distance au barycentre
+## 2026-04-23 - solver.py - Désambiguïsation analytique par distance au barycentre
 
 **Choix**
 Quand `resoudre_analytique` produit deux candidats valides, le choix se fait

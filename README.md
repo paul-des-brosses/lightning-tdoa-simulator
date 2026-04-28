@@ -8,11 +8,11 @@ Software simulation of a 3-station VLF lightning detection network using time-di
 
 This simulator grew out of a hardware project I started in 2025 as part of an ESILV computer-science assignment: a three-node VLF lightning detector built around custom loop antennas, ESP32 acquisition boards, and GPS modules for time synchronisation. The hardware reached the prototype stage but was never finalised, and the original source has not been preserved.
 
-The Python work here reconstructs and formalises the algorithmic side of that effort. It is the part that survived: the geometry, the noise model, the solver, and the benchmarks that quantify how strongly each one drives accuracy — questions the prototype never had time to answer empirically.
+The Python work here reconstructs and formalises the algorithmic side of that effort. It is the part that survived: the geometry, the noise model, the solver, and the benchmarks that quantify how strongly each one drives accuracy. These were questions the prototype never had time to answer empirically.
 
 ## Why this project
 
-VLF lightning detection sits at an intersection that is particularly rewarding to work on: signal acquisition from a low-frequency physical phenomenon, sub-microsecond time synchronisation across distributed nodes, and the inversion of a clean geometric problem. The basic idea — three timestamps, two hyperbolas, one fix — is almost trivially simple to state, yet the precision required to make it useful (a few hundred metres of position error demands tens of nanoseconds of timing budget) is what makes the engineering interesting. That contrast between geometric simplicity and operational tightness is what kept me on the topic.
+VLF lightning detection sits at an intersection that is particularly rewarding to work on: signal acquisition from a low-frequency physical phenomenon, sub-microsecond time synchronisation across distributed nodes, and the inversion of a clean geometric problem. The basic idea (three timestamps, two hyperbolas, one fix) is almost trivially simple to state, yet the precision required to make it useful (a few hundred metres of position error demands tens of nanoseconds of timing budget) is what makes the engineering interesting. That contrast between geometric simplicity and operational tightness is what kept me on the topic.
 
 ![Heatmap of median location error around a 50 km triangle](assets/heatmap_main.png)
 
@@ -36,7 +36,7 @@ For a strike at position **p** and a station at **rᵢ**, the simulated time of 
 
 $$ t_i = \frac{\|\mathbf{p} - \mathbf{r}_i\|}{c} + n_i $$
 
-where *c* is fixed at 299 792 458 m/s and *nᵢ* lumps together VLF detection jitter, GPS-disciplined clock jitter, and a per-station bias. The solver works on time *differences* relative to a reference station — the absolute origin drops out:
+where *c* is fixed at 299 792 458 m/s and *nᵢ* lumps together VLF detection jitter, GPS-disciplined clock jitter, and a per-station bias. The solver works on time *differences* relative to a reference station, so the absolute origin drops out:
 
 $$ \min_{\mathbf{p}} \; \sum_{i \neq \mathrm{ref}} \Big( \|\mathbf{p}-\mathbf{r}_i\| - \|\mathbf{p}-\mathbf{r}_{\mathrm{ref}}\| - c \, \tau_i \Big)^2 $$
 
@@ -45,7 +45,7 @@ Two solvers are implemented behind the same API:
 - a non-linear least-squares minimiser (`scipy.optimize.least_squares`, trust-region reflective), which is the production path and extends to *N* stations;
 - a closed-form intersection of the two TDOA hyperbolas, kept as a baseline and as a sanity check.
 
-The simulation deliberately stops at the time-of-arrival level — there is no waveform synthesis or cross-correlation. The point of the project is to expose the geometric structure of TDOA, not to model the ionosphere.
+The simulation deliberately stops at the time-of-arrival level. There is no waveform synthesis or cross-correlation. The point of the project is to expose the geometric structure of TDOA, not to model the ionosphere.
 
 ### What is assumed away
 
@@ -70,13 +70,13 @@ Median error per cell, 100 Monte Carlo trials each, σ_VLF = σ_GPS = σ_clock =
 
 ![Median error vs noise](assets/noise_curve.png)
 
-Median location error against σ on the time channels, log-log. The slope is essentially 1 (fitted ≈ 0.999) over four decades — this is the linear scaling expected when the geometry is fixed. At σ = 100 ns the fix is good to about 55 m, which is the calibration point used in the heatmap above.
+Median location error against σ on the time channels, log-log. The slope is essentially 1 (fitted ≈ 0.999) over four decades, the linear scaling expected when the geometry is fixed. At σ = 100 ns the fix is good to about 55 m, which is the calibration point used in the heatmap above.
 
 ### NLLS vs closed-form solver
 
 ![Solver comparison](assets/solver_comparison.png)
 
-The two solvers track each other within 5 % across the whole noise range. Beyond noise behaviour, NLLS wins because (i) it generalises to *N* stations for free, and (ii) the analytical solver is genuinely brittle on noiseless inputs — the two hyperbolas cross at two points and a tie-breaker is required. NLLS is therefore the default; the analytical solver is kept for cross-checks and for its pedagogical value.
+The two solvers track each other within 5 % across the whole noise range. Beyond noise behaviour, NLLS wins because (i) it generalises to *N* stations for free, and (ii) the analytical solver is genuinely brittle on noiseless inputs, where the two hyperbolas cross at two points and a tie-breaker is required. NLLS is therefore the default; the analytical solver is kept for cross-checks and for its pedagogical value.
 
 ### How to size the network
 
@@ -86,7 +86,7 @@ For a target coverage zone of radius *Z*, varying the equilateral side over {0.1
 
 ## Live demo
 
-The web UI is a pure static site: HTML, CSS, vanilla JS, and Pyodide. The Python library is loaded into the browser as-is — no JavaScript port. You can drag the three stations, switch noise presets, generate a storm of random strikes (Poisson timing + 2D random walk + drift), and watch detections coloured by error. Pause to compute a Monte Carlo error map over the visible area, or stop the session to download a one-page PDF report (config, key figures, captured scene).
+The web UI is a pure static site: HTML, CSS, vanilla JS, and Pyodide. The Python library is loaded into the browser as-is, with no JavaScript port. You can drag the three stations, switch noise presets, generate a storm of random strikes (Poisson timing + 2D random walk + drift), and watch detections coloured by error. Pause to compute a Monte Carlo error map over the visible area, or stop the session to download a one-page PDF report (config, key figures, captured scene).
 
 A static deployment will be available at <https://paul-des-brosses.github.io/lightning-tdoa-simulator/> once GitHub Pages is enabled on the repository.
 
@@ -106,19 +106,19 @@ experiments/       Stand-alone benchmark scripts; rerun to regenerate assets/
 ui/                Static web app: HTML/CSS/vanilla JS + Pyodide bridge
 ```
 
-A point of design that matters: `solver.py` does not import `simulator.py`. The solver consumes a plain `dict[station_id, t_arrival]` and is agnostic about where those timestamps come from. Wiring up real receivers later means writing a new producer for that dict — nothing in the solver has to change.
+A point of design that matters: `solver.py` does not import `simulator.py`. The solver consumes a plain `dict[station_id, t_arrival]` and is agnostic about where those timestamps come from. Wiring up real receivers later means writing a new producer for that dict. Nothing in the solver has to change.
 
 ## Limitations and possible extensions
 
 - 2D geometry. The math generalises to 3D without surprises but a fourth station is needed to constrain altitude.
 - No waveform synthesis. A `waveform.py` module with chirp generation and cross-correlation TDOA extraction is a natural extension and would let the noise model become physically grounded.
-- The Chan algorithm (closed-form, robust under noise) would be a useful third solver to add for benchmarking — it is a known good baseline in the TDOA literature.
+- The Chan algorithm (closed-form, robust under noise) would be a useful third solver to add for benchmarking. It is a known good baseline in the TDOA literature.
 - The clock bias model is per-trial; for campaign-style simulations it should be per-station and carried across trials.
 - The static plotting code (`viz.py`) and the live SVG renderer (`ui/svg_scene.js`) duplicate a small amount of geometry. Refactoring towards a single source of truth is on the to-do list.
 
 ## Author
 
-Paul des Brosses — M1 student in Creative Technology at ESILV (Paris), 2025–2026 academic year.
+Paul des Brosses, M1 student in Creative Technology at ESILV (Paris), 2025–2026 academic year.
 
 *Creative Tech engineering at the intersection of hardware, software, and applied AI.*
 
