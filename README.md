@@ -4,7 +4,7 @@ Software simulation of a 3-station VLF lightning detection network using time-di
 
 **[▶ Try the live demo](https://paul-des-brosses.github.io/lightning-tdoa-simulator/)** — drag the stations, trigger storms, watch the solver work.
 
-**Headline result.** With three stations on a 50 km equilateral baseline and 100 ns timing noise on every channel, the median location error is **about 52 m inside the network footprint** and stays under 65 m out to the circumscribed circle.
+**Headline result.** With three stations on a 50 km equilateral baseline and 100 ns timing noise on every channel, the median location error is about 52 m inside the network footprint and stays under 65 m out to the circumscribed circle.
 
 ## Origin
 
@@ -14,7 +14,7 @@ The Python work here reconstructs and formalises the algorithmic side of that ef
 
 ## Why this project
 
-VLF lightning detection sits at an intersection that is particularly rewarding to work on: signal acquisition from a low-frequency physical phenomenon, sub-microsecond time synchronisation across distributed nodes, and the inversion of a clean geometric problem. The basic idea (three timestamps, two hyperbolas, one fix) is almost trivially simple to state, yet the precision required to make it useful (a few hundred metres of position error demands tens of nanoseconds of timing budget) is what makes the engineering interesting. That contrast between geometric simplicity and operational tightness is what kept me on the topic.
+VLF lightning detection sits at an intersection that is particularly rewarding to work on: signal acquisition from a low-frequency physical phenomenon, sub-microsecond time synchronisation across distributed nodes, and the inversion of a clean geometric problem. The basic idea (three timestamps, two hyperbolas, one fix) is almost trivially simple to state, yet the precision required to make it useful demands tens of nanoseconds of timing budget for a few-hundred-metre position error. That contrast between geometric simplicity and operational tightness is what kept me on the topic.
 
 ![Heatmap of median location error around a 50 km triangle](assets/heatmap_main.png)
 
@@ -112,11 +112,11 @@ A point of design that matters: `solver.py` does not import `simulator.py`. The 
 
 ## Limitations and possible extensions
 
-- 2D geometry. The math generalises to 3D without surprises but a fourth station is needed to constrain altitude.
-- No waveform synthesis. A `waveform.py` module with chirp generation and cross-correlation TDOA extraction is a natural extension and would let the noise model become physically grounded.
+- 2D geometry. The math generalises to 3D without surprises, but a fourth station is needed to constrain altitude.
+- No waveform synthesis. A `waveform.py` module with chirp generation and cross-correlation TDOA extraction is a natural extension that would let the noise model become physically grounded.
 - The Chan algorithm (closed-form, robust under noise) would be a useful third solver to add for benchmarking. It is a known good baseline in the TDOA literature.
 - The clock bias model is per-trial; for campaign-style simulations it should be per-station and carried across trials.
-- The static plotting code (`viz.py`) and the live SVG renderer (`ui/svg_scene.js`) duplicate a small amount of geometry. Refactoring towards a single source of truth is on the to-do list.
+- The static plotting code (`viz.py`) and the live SVG renderer (`ui/svg_scene.js`) duplicate a small amount of geometry. Refactoring towards a single source of truth is planned.
 
 ## Author
 
