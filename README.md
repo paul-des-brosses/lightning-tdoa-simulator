@@ -2,6 +2,8 @@
 
 Software simulation of a 3-station VLF lightning detection network using time-difference-of-arrival trilateration. Pure Python, no hardware involved; the same code runs on a laptop or in the browser via WebAssembly. Originally a hardware exploration; now a public software study of TDOA accuracy under controlled noise.
 
+**[▶ Try the live demo](https://paul-des-brosses.github.io/lightning-tdoa-simulator/)** — drag the stations, trigger storms, watch the solver work.
+
 **Headline result.** With three stations on a 50 km equilateral baseline and 100 ns timing noise on every channel, the median location error is **about 52 m inside the network footprint** and stays under 65 m out to the circumscribed circle.
 
 ## Origin
@@ -118,12 +120,14 @@ A point of design that matters: `solver.py` does not import `simulator.py`. The 
 
 ## Author
 
-Paul des Brosses, M1 student in Creative Technology at ESILV (Paris), 2025–2026 academic year.
+Paul Des Brosses — M1 Creative Technology student, ESILV (Paris)
+GitHub: https://github.com/paul-des-brosses · LinkedIn: https://www.linkedin.com/in/paul-des-brosses/
 
-*Creative Tech engineering at the intersection of hardware, software, and applied AI.*
+This repository is part of a public portfolio at the intersection of hardware, software and applied AI. Other projects:
 
-- GitHub: <https://github.com/paul-des-brosses>
-- LinkedIn: <https://www.linkedin.com/in/paul-des-brosses/>
+- [Forest of Senses](https://github.com/paul-des-brosses/forest-of-senses) — zero-instruction motor adaptation environment for post-stroke rehabilitation research
+- [Bocage Digital Twin](https://github.com/paul-des-brosses/bocage-digital-twin) — instrumented digital twin of a Norman bocage countryside (Unity 6 WebGL)
+- [Applied Fox](https://github.com/paul-des-brosses/applied-fox) — local multi-agent AI system for R&D technology watch
 
 ## License
 
